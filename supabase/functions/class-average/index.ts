@@ -1,6 +1,6 @@
 // supabase/functions/class-average/index.ts
 
-import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
+import { serve } from 'https://deno.land/std@0.224.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { MongoClient } from 'https://deno.land/x/mongo@v0.32.0/mod.ts'
 
@@ -65,9 +65,10 @@ serve(async (req: Request) => {
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   } catch (err) {
-    return new Response(String(err?.message ?? err), {
-      status: 500,
-      headers: corsHeaders,
-    })
+    const errorMessage = err instanceof Error ? err.message : String(err)
+  return new Response(errorMessage, {
+    status: 500,
+    headers: corsHeaders,
+  })
   }
 })
