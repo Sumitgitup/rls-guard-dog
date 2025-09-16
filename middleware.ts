@@ -27,13 +27,21 @@ export async function middleware(req: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user && req.nextUrl.pathname.startsWith('/teacher')) {
-    return NextResponse.redirect(new URL('/login', req.url))
+  // --- CHANGE 1: Check for all protected routes ---
+  const isProtectedRoute = 
+    req.nextUrl.pathname.startsWith('/teacher') ||
+    req.nextUrl.pathname.startsWith('/student') ||
+    req.nextUrl.pathname.startsWith('/head-teacher');
+
+  if (!user && isProtectedRoute) {
+    // --- CHANGE 2: Redirect to the homepage ('/') instead of '/login' ---
+    return NextResponse.redirect(new URL('/', req.url))
   }
 
   return res
 }
 
 export const config = {
-  matcher: ['/teacher/:path*'],
+  // --- CHANGE 3: Add all protected routes to the matcher ---
+  matcher: ['/teacher/:path*', '/student/:path*', '/head-teacher/:path*'],
 }
