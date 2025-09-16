@@ -80,12 +80,12 @@ export default function TeacherPage() {
           <h1 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-gray-100">
             🧑‍🏫 Teacher Dashboard
           </h1>
-          <button
+          {/* <button
             onClick={handleCalculateAverages}
             className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-5 rounded-lg shadow transition-colors"
           >
             Calculate Class Average
-          </button>
+          </button> */}
         </div>
 
         {/* Table */}
