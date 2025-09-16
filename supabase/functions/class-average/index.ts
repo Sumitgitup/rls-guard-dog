@@ -4,16 +4,13 @@ import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { MongoClient } from 'https://deno.land/x/mongo@v0.32.0/mod.ts'
 
-// FIX: Added 'Access-Control-Allow-Methods' to correctly handle POST requests
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
-// FIX: Use the standard 'Request' type provided by the Deno runtime
 serve(async (req: Request) => {
-  // Handle the preflight OPTIONS request
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
@@ -29,18 +26,23 @@ serve(async (req: Request) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const { data: progressRecords, error } = await supabaseAdmin
+    let { data: progressRecords, error } = await supabaseAdmin
       .from('progress')
       .select('score')
       .eq('classroom_id', classroom_id)
 
     if (error) throw error
 
-    // FIX: Properly type the accumulator and record in the reduce function
+    // --- FIX IS HERE ---
+    // If no records are found, supabase returns data as null.
+    // We'll handle this by setting progressRecords to an empty array.
+    if (!progressRecords) {
+      progressRecords = []
+    }
+
     const totalScore = progressRecords.reduce((sum: number, record: { score: number }) => sum + record.score, 0)
     const average = progressRecords.length > 0 ? totalScore / progressRecords.length : 0
 
-    // FIX: Add a check to ensure the MONGO_URI secret is set
     const MONGO_URI = Deno.env.get('MONGO_URI')
     if (!MONGO_URI) {
       throw new Error("MONGO_URI secret is not set in Supabase project.")

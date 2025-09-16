@@ -1,19 +1,18 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Tables } from '@/lib/database.types'
 
 // Define the type for a progress record
 type ProgressRecord = Tables<'progress'>
 
 // STEP 1: Create a sample array of progress data.
-// The structure must match the 'ProgressRecord' type.
 const hardcodedProgressData: ProgressRecord[] = [
   {
     id: '11111111-1111-1111-1111-111111111111',
-    student_id: 'your-student-uuid', // This can be a placeholder
+    student_id: 'your-student-uuid',
     classroom_id: 'class-a-uuid',
     school_id: 'school-uuid',
-    subject: ' Math Test',
+    subject: 'Math Test',
     score: 95,
     updated_at: new Date().toISOString(),
     profiles: function (profiles: any): unknown {
@@ -25,7 +24,7 @@ const hardcodedProgressData: ProgressRecord[] = [
     student_id: 'your-student-uuid',
     classroom_id: 'class-a-uuid',
     school_id: 'school-uuid',
-    subject: ' Science Test',
+    subject: 'Science Test',
     score: 88,
     updated_at: new Date().toISOString(),
     profiles: function (profiles: any): unknown {
@@ -35,28 +34,46 @@ const hardcodedProgressData: ProgressRecord[] = [
 ]
 
 export default function StudentPage() {
-  // STEP 2: Initialize the state directly with your hardcoded data.
-  const [progress, setProgress] = useState<ProgressRecord[]>(hardcodedProgressData)
+  // STEP 2: Initialize state with hardcoded data.
+  const [progress] = useState<ProgressRecord[]>(hardcodedProgressData)
 
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-bold mb-4">My Progress (Test Data)</h1>
-      <table className="min-w-full bg-white border">
-        <thead className="bg-gray-200 text-gray-600 uppercase text-sm">
-          <tr>
-            <th className="py-3 px-6 text-left">Subject</th>
-            <th className="py-3 px-6 text-center">Score</th>
-          </tr>
-        </thead>
-        <tbody className="text-gray-600 text-sm font-light">
-          {progress.map((record) => (
-            <tr key={record.id} className="border-b border-gray-200">
-              <td className="py-3 px-6 text-left">{record.subject}</td>
-              <td className="py-3 px-6 text-center">{record.score}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="p-6 md:p-10">
+      <div className="max-w-3xl mx-auto bg-white dark:bg-gray-900 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
+        <h1 className="text-2xl md:text-3xl font-bold mb-6 text-gray-800 dark:text-gray-100">
+          📊 My Progress
+        </h1>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm md:text-base border-collapse">
+            <thead>
+              <tr className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 uppercase text-xs md:text-sm">
+                <th className="py-3 px-4 text-left rounded-tl-lg">Subject</th>
+                <th className="py-3 px-4 text-center rounded-tr-lg">Score</th>
+              </tr>
+            </thead>
+            <tbody>
+              {progress.map((record, idx) => (
+                <tr
+                  key={record.id}
+                  className={`${
+                    idx % 2 === 0
+                      ? 'bg-gray-50 dark:bg-gray-800/50'
+                      : 'bg-white dark:bg-gray-900'
+                  } hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors`}
+                >
+                  <td className="py-3 px-4 text-gray-800 dark:text-gray-100">
+                    {record.subject}
+                  </td>
+                  <td className="py-3 px-4 text-center font-semibold text-blue-600 dark:text-blue-400">
+                    {record.score}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   )
 }

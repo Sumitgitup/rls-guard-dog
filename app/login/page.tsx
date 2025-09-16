@@ -10,16 +10,13 @@ export default function LoginPage() {
   const supabase = createClient()
   const router = useRouter()
 
-  // Use useEffect to set up the listener once
   useEffect(() => {
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (event === 'SIGNED_IN') {
-          // 1. Get the user's ID from the session
           const userId = session?.user?.id
           if (!userId) return
 
-          // 2. Fetch the user's profile to find their role
           const { data: profile, error } = await supabase
             .from('profiles')
             .select('role')
@@ -27,12 +24,10 @@ export default function LoginPage() {
             .single()
 
           if (error || !profile) {
-            // If there's an error or no profile, redirect to a safe default
             router.push('/')
             return
           }
 
-          // 3. Redirect based on the role
           switch (profile.role) {
             case 'student':
               router.push('/student')
@@ -44,27 +39,51 @@ export default function LoginPage() {
               router.push('/head-teacher')
               break
             default:
-              router.push('/') // Fallback for any other case
+              router.push('/')
               break
           }
         }
       }
     )
 
-    // Cleanup the listener when the component unmounts
     return () => {
       authListener.subscription.unsubscribe()
     }
   }, [supabase, router])
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-      <div style={{ width: '320px' }}>
+    <div className="flex justify-center items-center min-h-screen bg-gray-50 dark:bg-gray-950">
+      <div className="w-full max-w-sm bg-white dark:bg-gray-900 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
+        <h1 className="text-2xl font-bold mb-6 text-center text-gray-800 dark:text-gray-100">
+          Welcome Back 👋
+        </h1>
         <Auth
           supabaseClient={supabase}
-          appearance={{ theme: ThemeSupa }}
+          appearance={{
+            theme: ThemeSupa,
+            variables: {
+              default: {
+                colors: {
+                  brand: '#2563eb', // Tailwind blue-600
+                  brandAccent: '#1e40af', // Tailwind blue-800
+                  brandButtonText: 'white',
+                },
+              },
+            },
+          }}
+          theme="default"
           providers={['google', 'github']}
         />
+        <p className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
+          By signing in, you agree to our{' '}
+          <a href="/terms" className="underline hover:text-blue-600 dark:hover:text-blue-400">
+            Terms
+          </a>{' '}
+          &{' '}
+          <a href="/privacy" className="underline hover:text-blue-600 dark:hover:text-blue-400">
+            Privacy Policy
+          </a>
+        </p>
       </div>
     </div>
   )

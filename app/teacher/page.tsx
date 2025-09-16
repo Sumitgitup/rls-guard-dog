@@ -1,4 +1,3 @@
-// app/teacher/page.tsx
 'use client'
 import { useState, useEffect, ChangeEvent } from 'react'
 import { createClient } from '@/lib/supabase/client'
@@ -14,11 +13,9 @@ export default function TeacherPage() {
 
   useEffect(() => {
     const fetchData = async () => {
-      // First, get the current user to find their classroom_id
       const { data: { user } } = await supabase.auth.getUser()
 
       if (user) {
-        // Fetch the teacher's profile to get their assigned classroom
         const { data: profile } = await supabase
           .from('profiles')
           .select('classroom_id')
@@ -30,7 +27,6 @@ export default function TeacherPage() {
         }
       }
 
-      // Fetch the progress records for the teacher's class (RLS handles this)
       const { data: progressData, error } = await supabase.from('progress').select(`
         *,
         profiles ( full_name )
@@ -54,64 +50,85 @@ export default function TeacherPage() {
     if (error) alert('Error updating score: ' + error.message)
   }
 
-  // --- FUNCTION MOVED HERE ---
   const handleCalculateAverages = async () => {
     if (!classroomId) {
       alert('Could not determine your classroom ID.')
       return
     }
-    const { data, error } = await supabase.functions.invoke('class-average', {
+    const { error } = await supabase.functions.invoke('class-average', {
       body: { classroom_id: classroomId },
     })
     if (error) alert('Error calculating average: ' + error.message)
     else alert('Successfully calculated average for your class!')
   }
 
-  if (loading) return <div>Loading...</div>
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <p className="text-lg text-gray-600 dark:text-gray-300 animate-pulse">
+          Loading teacher dashboard...
+        </p>
+      </div>
+    )
+  }
 
   return (
-    <div className="p-8">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Teacher Dashboard</h1>
-        {/* --- BUTTON MOVED HERE --- */}
-        <button
-          onClick={handleCalculateAverages}
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-        >
-          Calculate Class Average
-        </button>
-      </div>
-      <div className="overflow-x-auto">
-        {/* The rest of your table JSX remains the same */}
-        <table className="min-w-full bg-white border">
-          <thead className="bg-gray-200 text-gray-600 uppercase text-sm">
-            <tr>
-              <th className="py-3 px-6 text-left">Student Name</th>
-              <th className="py-3 px-6 text-left">Subject</th>
-              <th className="py-3 px-6 text-center">Score</th>
-            </tr>
-          </thead>
-          <tbody className="text-gray-600 text-sm font-light">
-            {progress.map((record) => (
-              <tr key={record.id} className="border-b border-gray-200 hover:bg-gray-100">
-                <td className="py-3 px-6 text-left">
-                  {record.profiles?.full_name ?? 'N/A'}
-                </td>
-                <td className="py-3 px-6 text-left">{record.subject}</td>
-                <td className="py-3 px-6 text-center">
-                  <input
-                    type="number"
-                    defaultValue={record.score}
-                    onBlur={(e: ChangeEvent<HTMLInputElement>) =>
-                      handleScoreChange(record.id, parseInt(e.target.value, 10))
-                    }
-                    className="w-20 text-center border rounded py-1"
-                  />
-                </td>
+    <div className="p-6 md:p-10">
+      <div className="max-w-5xl mx-auto bg-white dark:bg-gray-900 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-gray-100">
+            🧑‍🏫 Teacher Dashboard
+          </h1>
+          <button
+            onClick={handleCalculateAverages}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-5 rounded-lg shadow transition-colors"
+          >
+            Calculate Class Average
+          </button>
+        </div>
+
+        {/* Table */}
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm md:text-base border-collapse">
+            <thead>
+              <tr className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 uppercase text-xs md:text-sm">
+                <th className="py-3 px-4 text-left rounded-tl-lg">Student Name</th>
+                <th className="py-3 px-4 text-left">Subject</th>
+                <th className="py-3 px-4 text-center rounded-tr-lg">Score</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {progress.map((record, idx) => (
+                <tr
+                  key={record.id}
+                  className={`${
+                    idx % 2 === 0
+                      ? 'bg-gray-50 dark:bg-gray-800/50'
+                      : 'bg-white dark:bg-gray-900'
+                  } hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors`}
+                >
+                  <td className="py-3 px-4 text-gray-800 dark:text-gray-100">
+                    {record.profiles?.full_name ?? 'N/A'}
+                  </td>
+                  <td className="py-3 px-4 text-gray-700 dark:text-gray-300">
+                    {record.subject}
+                  </td>
+                  <td className="py-3 px-4 text-center">
+                    <input
+                      type="number"
+                      defaultValue={record.score}
+                      onBlur={(e: ChangeEvent<HTMLInputElement>) =>
+                        handleScoreChange(record.id, parseInt(e.target.value, 10))
+                      }
+                      className="w-20 text-center border border-gray-300 dark:border-gray-700 rounded-lg py-1 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 outline-none transition"
+                    />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   )
